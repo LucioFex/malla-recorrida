@@ -172,6 +172,101 @@
   padding: 1px 5px;
 }
 
+/* ---------- cierre de la parada ---------- */
+/* La hoja de ruta no termina cuando se imprime: el resultado de la inspeccion vuelve por el
+   mismo lugar por donde salio, que es lo que pide la vista operativa del alcance. */
+
+.parada-item { list-style: none; }
+.parada-item + .parada-item { border-top: 1px solid var(--linea); }
+.parada + .parada { border-top: 0; }
+
+.parada-cierre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 10px 37px;
+  margin-top: -4px;
+}
+
+.cierre-boton {
+  font: inherit;
+  font-size: 11.5px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: 5px;
+  border: 1px solid var(--linea-fuerte);
+  background: var(--papel);
+  color: var(--tinta-2);
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease, color .14s ease;
+}
+.cierre-boton:hover { background: var(--panel-hondo); color: var(--tinta); }
+.cierre-boton.marcado { border-color: var(--bordo); background: var(--bordo-tenue); color: var(--bordo); font-weight: 600; }
+
+.cierre-estado {
+  font-size: 11.5px;
+  color: var(--tinta-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.cierre-estado b { font-weight: 600; color: var(--tinta-2); }
+.cierre-estado.hallazgo b { color: var(--bordo); }
+
+.cierre-punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--r2);
+  flex: 0 0 7px;
+}
+.cierre-punto.hallazgo { background: var(--bordo); }
+
+.cierre-deshacer {
+  font: inherit;
+  font-size: 11.5px;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--tinta-3);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.cierre-deshacer:hover { color: var(--tinta); }
+
+.avance {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.avance b { font-family: var(--serif); font-size: 21px; font-weight: 600; }
+.avance span { font-size: 12px; color: var(--tinta-3); }
+
+.avance-barra {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--panel-hondo);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.avance-barra div {
+  height: 100%;
+  background: var(--r2);
+  transform-origin: left;
+  transition: transform .3s ease;
+}
+
+.avance-pie { margin: 0; font-size: 12px; color: var(--tinta-2); }
+.avance-pie b { font-weight: 600; }
+
+.marcador-parada.cerrada { background: var(--r2); color: var(--tinta); }
+.marcador-parada.con-hallazgo {
+  background: var(--bordo);
+  box-shadow: 0 0 0 2px var(--papel), 0 0 0 4px var(--bordo);
+}
+
 .parada-corte {
   display: flex;
   align-items: center;

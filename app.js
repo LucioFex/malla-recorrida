@@ -17,7 +17,10 @@
     ciudad: "bahia_blanca",
     jornada: 8,
     cuadrillas: 2,
-    activa: null
+    activa: null,
+    /* resultado de la inspeccion por tramo: "ok" o "hallazgo". Es lo que cierra el
+       circuito, porque el dato vuelve por el mismo lugar por donde salio la hoja de ruta. */
+    cierres: {}
   };
 
   var mapa, capaFondo, capaRuta, capaMarcas, marcadores = {};
@@ -224,10 +227,14 @@
           color: color, weight: 5.5, opacity: .95, lineCap: "round"
         }).addTo(capaRuta);
 
+        var cierre = estado.cierres[p.tramo.id];
+        var marca = cierre === "hallazgo" ? " con-hallazgo" : cierre === "ok" ? " cerrada" : "";
+
         var m = L.marker([p.tramo.lat, p.tramo.lon], {
           icon: L.divIcon({
             className: "",
-            html: '<div class="marcador-parada' + (q ? " cuadrilla-" + (q + 1) : "") + '">' + (i + 1) + "</div>",
+            html: '<div class="marcador-parada' + (q && !marca ? " cuadrilla-" + (q + 1) : "") +
+              marca + '">' + (i + 1) + "</div>",
             iconSize: [24, 24],
             iconAnchor: [12, 12]
           }),
@@ -259,13 +266,13 @@
 
     document.getElementById("barra-actual").style.transform = "scaleX(" + (pa / pm).toFixed(3) + ")";
     document.getElementById("barra-malla").style.transform = "scaleX(1)";
-    document.getElementById("valor-actual").textContent = pa.toFixed(1) + " %";
-    document.getElementById("valor-malla").textContent = pm.toFixed(1) + " %";
+    document.getElementById("valor-actual").textContent = pa.toFixed(1).replace(".", ",") + " %";
+    document.getElementById("valor-malla").textContent = pm.toFixed(1).replace(".", ",") + " %";
 
     var veces = plan.riesgoActual > 0 ? plan.riesgoMalla / plan.riesgoActual : 0;
     document.getElementById("compara-pie").innerHTML =
       "Con las mismas horas de cuadrilla, la recorrida de Malla cubre <b>" +
-      veces.toFixed(1) + " veces</b> el riesgo que cubre la lista por calle, y alcanza a <b>" +
+      veces.toFixed(1).replace(".", ",") + " veces</b> el riesgo que cubre la lista por calle, y alcanza a <b>" +
       num(plan.hogaresMalla) + " hogares</b> en lugar de " + num(plan.hogaresActual) + ".";
   }
 
@@ -286,7 +293,7 @@
       e.paradas.forEach(function (p, i) {
         total++;
         var t = p.tramo;
-        html += '<li><button class="parada" type="button" data-id="' + t.id + '" ' +
+        html += '<li class="parada-item"><button class="parada" type="button" data-id="' + t.id + '" ' +
           'aria-current="' + (estado.activa === t.id ? "true" : "false") + '">' +
           '<span class="parada-orden' + (q ? " cuadrilla-" + (q + 1) : "") + '">' + (i + 1) + "</span>" +
           '<span class="parada-calle">' + t.nombre + "</span>" +
@@ -300,7 +307,7 @@
             "<span>" + Math.round(p.viaje) + " min de viaje</span>" +
             (t.receptores.length ? '<span class="punto-sep">/</span><span>' + t.receptores.length + " receptor" + (t.receptores.length > 1 ? "es" : "") + " sensible" + (t.receptores.length > 1 ? "s" : "") + "</span>" : "") +
           "</span>" +
-          "</button></li>";
+          "</button>" + cierrePara(t) + "</li>";
       });
     });
 
@@ -310,6 +317,71 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-id]"), function (el) {
       el.addEventListener("click", function () { enfocar(el.dataset.id, true); });
     });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cierre]"), function (el) {
+      el.addEventListener("click", function () {
+        var id = el.dataset.cierre;
+        var valor = el.dataset.valor;
+        if (valor) estado.cierres[id] = valor;
+        else delete estado.cierres[id];
+        pintarMapa();
+        pintarParadas();
+        pintarAvance();
+      });
+    });
+  }
+
+  /* El resultado de la inspeccion vuelve por el mismo lugar por donde salio la hoja de
+     ruta. Sin esto la recorrida es una salida y no un ciclo. */
+  function cierrePara(t) {
+    var r = estado.cierres[t.id];
+
+    if (!r) {
+      return '<div class="parada-cierre">' +
+        '<button class="cierre-boton" type="button" data-cierre="' + t.id + '" data-valor="ok">Sin novedad</button>' +
+        '<button class="cierre-boton" type="button" data-cierre="' + t.id + '" data-valor="hallazgo">Con hallazgo</button>' +
+        "</div>";
+    }
+
+    var hallazgo = r === "hallazgo";
+    return '<div class="parada-cierre">' +
+      '<span class="cierre-estado' + (hallazgo ? " hallazgo" : "") + '">' +
+        '<i class="cierre-punto' + (hallazgo ? " hallazgo" : "") + '"></i>' +
+        (hallazgo ? "Informado <b>con hallazgo</b>" : "Informado <b>sin novedad</b>") +
+      "</span>" +
+      '<button class="cierre-deshacer" type="button" data-cierre="' + t.id + '" data-valor="">deshacer</button>' +
+      "</div>";
+  }
+
+  function pintarAvance() {
+    var total = plan.visitados.length;
+    var cerradas = 0, hallazgos = 0;
+
+    plan.visitados.forEach(function (t) {
+      var r = estado.cierres[t.id];
+      if (!r) return;
+      cerradas++;
+      if (r === "hallazgo") hallazgos++;
+    });
+
+    document.getElementById("avance-valor").textContent = cerradas;
+    document.getElementById("avance-total").textContent =
+      "de " + total + " paradas informadas";
+    document.getElementById("avance-barra").style.transform =
+      "scaleX(" + (total ? cerradas / total : 0).toFixed(3) + ")";
+
+    var pie;
+    if (!cerradas) {
+      pie = "Cada parada se informa desde la misma pantalla. El resultado vuelve al sistema " +
+        "y actualiza la fecha de última inspección del tramo.";
+    } else {
+      pie = "<b>" + hallazgos + "</b> " + (hallazgos === 1 ? "hallazgo" : "hallazgos") +
+        " sobre " + cerradas + " " + (cerradas === 1 ? "parada informada" : "paradas informadas") + ". ";
+      pie += hallazgos
+        ? "Los tramos con hallazgo entran al próximo recálculo con probabilidad de falla corregida hacia arriba."
+        : "Los tramos informados quedan con fecha de inspección de hoy y bajan en la cola.";
+    }
+    document.getElementById("avance-pie").innerHTML = pie;
   }
 
   function enfocar(id, centrar) {
@@ -339,6 +411,7 @@
     pintarMapa();
     pintarComparacion();
     pintarParadas();
+    pintarAvance();
     if (reencuadrar) encuadrar();
   }
 
@@ -372,6 +445,7 @@
     sel.addEventListener("change", function () {
       estado.ciudad = sel.value;
       estado.activa = null;
+      estado.cierres = {};
       refrescar(true);
     });
 
