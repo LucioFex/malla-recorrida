@@ -257,8 +257,8 @@
     var pa = plan.riesgoActual / plan.riesgoTotal * 100;
     var pm = plan.riesgoMalla / plan.riesgoTotal * 100;
 
-    document.getElementById("barra-actual").style.width = (pa / pm * 100).toFixed(1) + "%";
-    document.getElementById("barra-malla").style.width = "100%";
+    document.getElementById("barra-actual").style.transform = "scaleX(" + (pa / pm).toFixed(3) + ")";
+    document.getElementById("barra-malla").style.transform = "scaleX(1)";
     document.getElementById("valor-actual").textContent = pa.toFixed(1) + " %";
     document.getElementById("valor-malla").textContent = pm.toFixed(1) + " %";
 
