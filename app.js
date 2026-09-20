@@ -2,15 +2,17 @@
    Reemplaza la lista de papel que hoy se recorre de arriba hacia abajo.
    La ruta no es un problema del viajante: la cuadrilla nunca llega a todo, asi que
    se elige el mejor subconjunto de tramos que entra en la jornada. Eso es un problema
-   de orientacion, y aca se resuelve con una heuristica golosa mas dos opt. */
+   de orientacion, y aca se resuelve con una heuristica golosa mas dos opt.
+
+   El calculo esta en motor.js, que es identico en el tablero. Las dos maquetas miden
+   lo mismo de la misma manera, y por eso dan el mismo numero. */
 
 (function () {
   "use strict";
 
   var D = window.MALLA;
+  var MOTOR = window.MALLA_MOTOR;
 
-  var VELOCIDAD = 21;        // km/h medios en calle urbana con trafico
-  var CANDIDATOS = 320;      // universo que mira el optimizador
   var COLOR_CUADRILLA = ["#7b1e2b", "#3d5a5f", "#8a6d2f"];
 
   var estado = {
@@ -34,151 +36,23 @@
     return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
   }
 
-  function km(a, b) {
-    var lat = (a.lat + b.lat) / 2 * Math.PI / 180;
-    var dx = (b.lon - a.lon) * 111.32 * Math.cos(lat);
-    var dy = (b.lat - a.lat) * 110.54;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  function viaje(a, b) { return km(a, b) / VELOCIDAD * 60 * 1.32; }   // 1.32 por el trazado de calles
-
-  function servicio(t) { return 11 + t.largo / 100 * 1.6; }           // minutos de inspeccion del tramo
-
-  /* ---------- optimizacion ---------- */
-
-  function resolver(candidatos, base, presupuesto) {
-    var libres = candidatos.slice();
-    var ruta = [];
-    var aqui = base;
-    var usado = 0;
-
-    while (libres.length) {
-      var mejor = -1, mejorValor = 0, mejorCosto = 0;
-
-      for (var i = 0; i < libres.length; i++) {
-        var t = libres[i];
-        var ida = viaje(aqui, t);
-        var serv = servicio(t);
-        var vuelta = viaje(t, base);
-        if (usado + ida + serv + vuelta > presupuesto) continue;
-
-        var valor = t.crit / (ida + serv);
-        if (valor > mejorValor) { mejorValor = valor; mejor = i; mejorCosto = ida + serv; }
-      }
-
-      if (mejor < 0) break;
-      var elegido = libres.splice(mejor, 1)[0];
-      usado += mejorCosto;
-      ruta.push(elegido);
-      aqui = elegido;
-    }
-
-    return dosOpt(ruta, base);
-  }
-
-  function largoRuta(ruta, base) {
-    var total = 0, aqui = base;
-    for (var i = 0; i < ruta.length; i++) { total += viaje(aqui, ruta[i]); aqui = ruta[i]; }
-    return total + viaje(aqui, base);
-  }
-
-  function dosOpt(ruta, base) {
-    if (ruta.length < 4) return ruta;
-    var mejor = ruta.slice();
-    var mejorLargo = largoRuta(mejor, base);
-    var cambio = true;
-    var vueltas = 0;
-
-    while (cambio && vueltas < 24) {
-      cambio = false;
-      vueltas++;
-      for (var i = 0; i < mejor.length - 1; i++) {
-        for (var j = i + 2; j < mejor.length; j++) {
-          var prueba = mejor.slice(0, i + 1)
-            .concat(mejor.slice(i + 1, j + 1).reverse())
-            .concat(mejor.slice(j + 1));
-          var l = largoRuta(prueba, base);
-          if (l < mejorLargo - 0.01) { mejor = prueba; mejorLargo = l; cambio = true; }
-        }
-      }
-    }
-    return mejor;
-  }
-
-  /* El criterio actual: la lista de calles en orden alfabetico, recorrida de arriba
-     hacia abajo hasta que se acaba la jornada. Es lo que describio Luciano en la
-     reunion del 8 de septiembre. */
-  function criterioActual(candidatos, base, presupuesto) {
-    var lista = candidatos.slice().sort(function (a, b) {
-      return a.nombre.localeCompare(b.nombre, "es");
-    });
-
-    var ruta = [], aqui = base, usado = 0;
-    for (var i = 0; i < lista.length; i++) {
-      var t = lista[i];
-      var costo = viaje(aqui, t) + servicio(t);
-      if (usado + costo + viaje(t, base) > presupuesto) break;
-      usado += costo;
-      ruta.push(t);
-      aqui = t;
-    }
-    return ruta;
-  }
+  /* El calculo vive en motor.js, que es la misma pieza que usa el tablero. Aca solo se
+     le pide el plan y se lo dibuja. */
 
   function calcular() {
     var c = D.ciudades[estado.ciudad];
-    var base = { lat: c.centro[0], lon: c.centro[1], nombre: "Base operativa" };
-    var presupuesto = estado.jornada * 60;
-
-    var candidatos = c.tramos.slice(0, CANDIDATOS);
-    var riesgoTotal = 0;
-    c.tramos.forEach(function (t) { riesgoTotal += t.crit; });
-
-    var libres = candidatos.slice();
-    var equipos = [];
-
-    for (var q = 0; q < estado.cuadrillas; q++) {
-      var ruta = resolver(libres, base, presupuesto);
-      var vistos = {};
-      ruta.forEach(function (t) { vistos[t.id] = true; });
-      libres = libres.filter(function (t) { return !vistos[t.id]; });
-
-      var reloj = 0, aqui = base, paradas = [];
-      ruta.forEach(function (t) {
-        var v = viaje(aqui, t);
-        reloj += v;
-        var inicio = reloj;
-        var s = servicio(t);
-        reloj += s;
-        paradas.push({ tramo: t, viaje: v, inicio: inicio, fin: reloj, cuadrilla: q });
-        aqui = t;
-      });
-
-      equipos.push({ paradas: paradas, regreso: reloj + viaje(aqui, base) });
-    }
-
-    var visitados = [];
-    equipos.forEach(function (e) { e.paradas.forEach(function (p) { visitados.push(p.tramo); }); });
-
-    var actual = criterioActual(candidatos, base, presupuesto * estado.cuadrillas);
-
-    function suma(lista, campo) {
-      var s = 0;
-      lista.forEach(function (t) { s += t[campo]; });
-      return s;
-    }
+    var p = MOTOR.planificar(c, estado.cuadrillas, estado.jornada);
 
     plan = {
-      base: base,
-      equipos: equipos,
-      visitados: visitados,
-      riesgoTotal: riesgoTotal,
-      riesgoMalla: suma(visitados, "crit"),
-      riesgoActual: suma(actual, "crit"),
-      hogaresMalla: suma(visitados, "hogares"),
-      hogaresActual: suma(actual, "hogares"),
-      paradasActual: actual.length
+      base: p.base,
+      equipos: p.malla.equipos,
+      visitados: p.malla.tramos,
+      riesgoTotal: p.riesgoTotal,
+      riesgoMalla: p.malla.riesgo,
+      riesgoActual: p.actual.riesgo,
+      hogaresMalla: p.malla.hogares,
+      hogaresActual: p.actual.hogares,
+      paradasActual: p.actual.paradas
     };
   }
 
@@ -270,10 +144,16 @@
     document.getElementById("valor-malla").textContent = pm.toFixed(1).replace(".", ",") + " %";
 
     var veces = plan.riesgoActual > 0 ? plan.riesgoMalla / plan.riesgoActual : 0;
+    var jornadas = estado.cuadrillas * (estado.jornada / 8);
+
     document.getElementById("compara-pie").innerHTML =
       "Con las mismas horas de cuadrilla, la recorrida de Malla cubre <b>" +
       veces.toFixed(1).replace(".", ",") + " veces</b> el riesgo que cubre la lista por calle, y alcanza a <b>" +
-      num(plan.hogaresMalla) + " hogares</b> en lugar de " + num(plan.hogaresActual) + ".";
+      num(plan.hogaresMalla) + " hogares</b> en lugar de " + num(plan.hogaresActual) + ". " +
+      "Los dos criterios miran la red completa y gastan las mismas horas, y los dos pagan el " +
+      "viaje entre tramo y tramo. Es el punto de <b>" +
+      jornadas.toFixed(1).replace(".", ",").replace(",0", "") +
+      "</b> en la curva de jornadas del tablero.";
   }
 
   function pintarParadas() {
