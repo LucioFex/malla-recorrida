@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Malla Recorrida, la hoja de ruta del día</title>
+<meta name="description" content="Variante B de Malla: la recorrida del día de la cuadrilla, resuelta como problema de orientación y comparada contra el criterio actual.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237b1e2b'/%3E%3Cg stroke='%23fbfaf8' stroke-width='2.2' fill='none' stroke-linecap='round'%3E%3Cpath d='M8 24c0-6 16-4 16-10S14 8 8 8'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="estilo.css">
+<link rel="stylesheet" href="recorrida.css">
+</head>
+<body>
+
+<header class="barra">
+  <div class="marca">
+    <b>Malla</b>
+    <span>Recorrida del día</span>
+  </div>
+
+  <div class="barra-sep"></div>
+
+  <label class="campo">
+    Ciudad
+    <select id="ciudad" aria-label="Ciudad"></select>
+  </label>
+
+  <label class="campo">
+    Cuadrillas
+    <select id="cuadrillas" aria-label="Cuadrillas disponibles">
+      <option value="1">1</option>
+      <option value="2" selected>2</option>
+      <option value="3">3</option>
+    </select>
+  </label>
+
+  <div class="barra-fin">
+    <button class="boton" id="btn-procedencia" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="8" cy="8" r="6.25"/><path d="M8 7.2v4"/><path d="M8 4.9h.01"/>
+      </svg>
+      Procedencia del dato
+    </button>
+    <button class="boton boton-primario" id="btn-exportar" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 2.6v7.6"/><path d="M5 7.4L8 10.4l3-3"/><path d="M2.8 12.2v1.2h10.4v-1.2"/>
+      </svg>
+      Enviar a la cuadrilla
+    </button>
+  </div>
+</header>
+
+<div class="cuerpo">
+
+  <aside class="lateral lateral-ancho">
+
+    <section class="bloque">
+      <div class="dia">
+        <h2 class="dia-titulo">Hoja de ruta</h2>
+        <p class="dia-fecha" id="fecha"></p>
+      </div>
+
+      <div class="rango-cabeza" style="margin-top:14px">
+        <span class="etiqueta-control">Jornada</span>
+        <span class="rango-valor"><span id="jornada-valor">8</span> h</span>
+      </div>
+      <input type="range" id="jornada" min="4" max="10" step="1" value="8" aria-label="Horas de jornada">
+
+      <div class="marcas-rango" aria-hidden="true">
+        <span>4 h</span><span>7 h</span><span>10 h</span>
+      </div>
+    </section>
+
+    <section class="bloque bloque-compara">
+      <h2>Contra el criterio actual</h2>
+
+      <div class="compara">
+        <div class="compara-fila">
+          <span class="compara-nombre">Lista por calle</span>
+          <div class="compara-barra"><div id="barra-actual" class="barra-actual"></div></div>
+          <span class="compara-valor" id="valor-actual">0 %</span>
+        </div>
+        <div class="compara-fila">
+          <span class="compara-nombre">Malla</span>
+          <div class="compara-barra"><div id="barra-malla" class="barra-malla"></div></div>
+          <span class="compara-valor compara-valor-fuerte" id="valor-malla">0 %</span>
+        </div>
+      </div>
+
+      <p class="compara-pie" id="compara-pie"></p>
+    </section>
+
+    <section class="bloque bloque-lista">
+      <h2>Paradas del día <span id="conteo-paradas" class="conteo-suave"></span></h2>
+      <ol class="paradas" id="paradas"></ol>
+    </section>
+
+  </aside>
+
+  <main class="mapa-zona">
+    <div id="mapa"></div>
+
+    <div class="aviso" id="aviso">
+      <p><b>Maqueta con datos mixtos.</b> Las calles y los receptores sensibles son reales, de OpenStreetMap. La serie de reclamos es real, de ENARGAS. Los hogares aguas abajo y los atributos del caño son de muestra, porque la traza fina de la red no es dato público.</p>
+      <p><button class="aviso-cerrar" id="aviso-cerrar" type="button">Entendido</button></p>
+    </div>
+  </main>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="datos/malla-datos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

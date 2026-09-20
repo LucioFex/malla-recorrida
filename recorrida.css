@@ -1,0 +1,226 @@
+/* Malla Recorrida, agregados propios de la variante B sobre el sistema base. */
+
+.lateral-ancho { --lateral: 372px; width: 372px; flex: 0 0 372px; }
+
+.dia { display: flex; flex-direction: column; gap: 3px; }
+
+.dia-titulo {
+  font-family: var(--serif) !important;
+  font-size: 19px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.01em !important;
+  text-transform: none !important;
+  color: var(--tinta) !important;
+  margin: 0 !important;
+}
+
+.dia-fecha { margin: 0; font-size: 12.5px; color: var(--tinta-3); line-height: 1.45; }
+
+.etiqueta-control {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+}
+
+.marcas-rango {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--tinta-3);
+  margin-top: 2px;
+}
+
+/* ---------- comparacion contra el criterio actual ---------- */
+
+.bloque-compara { background: var(--papel); }
+
+.compara { display: flex; flex-direction: column; gap: 10px; }
+
+.compara-fila { display: flex; align-items: center; gap: 10px; }
+
+.compara-nombre {
+  width: 92px;
+  flex: 0 0 92px;
+  font-size: 12.5px;
+  color: var(--tinta-2);
+}
+
+.compara-barra {
+  flex: 1;
+  height: 10px;
+  background: var(--panel-hondo);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.compara-barra div {
+  height: 100%;
+  border-radius: 5px;
+  transition: width .45s cubic-bezier(.16, 1, .3, 1);
+}
+
+.barra-actual { background: var(--linea-fuerte); }
+.barra-malla { background: var(--bordo); }
+
+.compara-valor {
+  width: 46px;
+  flex: 0 0 46px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--tinta-2);
+}
+
+.compara-valor-fuerte { font-weight: 600; color: var(--bordo); }
+
+.compara-pie {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--tinta-2);
+}
+.compara-pie b { color: var(--tinta); font-weight: 600; }
+
+/* ---------- paradas ---------- */
+
+.conteo-suave {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tinta-3);
+}
+
+.bloque-lista { flex: 1; min-height: 0; }
+
+.paradas { list-style: none; margin: 0; padding: 0; }
+
+.parada {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 2px 11px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  width: calc(100% + 16px);
+  transition: background .14s ease;
+}
+.parada:hover { background: var(--panel-hondo); }
+.parada[aria-current="true"] { background: var(--papel); box-shadow: inset 0 0 0 1px var(--linea-fuerte); }
+
+.parada + .parada { border-top: 1px solid var(--linea); border-radius: 0; }
+
+.parada-orden {
+  grid-row: 1 / 3;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--bordo);
+  align-self: start;
+}
+.parada-orden.cuadrilla-2 { background: #3d5a5f; }
+.parada-orden.cuadrilla-3 { background: #8a6d2f; }
+
+.parada-calle {
+  font-size: 13.5px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.parada-hora {
+  font-size: 12px;
+  color: var(--tinta-2);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.parada-detalle {
+  grid-column: 2 / 4;
+  font-size: 11.5px;
+  color: var(--tinta-3);
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.punto-sep { color: var(--linea-fuerte); }
+
+.chip-critico {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--bordo);
+  background: var(--bordo-tenue);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.parada-corte {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0 10px;
+  font-size: 11.5px;
+  color: var(--tinta-3);
+}
+.parada-corte::before, .parada-corte::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--linea-fuerte);
+}
+
+.fuera {
+  padding: 10px 8px;
+  margin: 0 -8px;
+  font-size: 12.5px;
+  color: var(--tinta-3);
+}
+
+/* ---------- marcadores del mapa ---------- */
+
+.marcador-parada {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--bordo);
+  color: #fff;
+  border: 2px solid var(--papel);
+  box-shadow: 0 2px 6px rgba(27, 26, 23, .3);
+  display: grid;
+  place-items: center;
+  font: 600 11px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+.marcador-parada.cuadrilla-2 { background: #3d5a5f; }
+.marcador-parada.cuadrilla-3 { background: #8a6d2f; }
+.marcador-parada.activo { transform: scale(1.22); box-shadow: 0 3px 12px rgba(27, 26, 23, .42); }
+
+.marcador-base {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--papel);
+  border: 3px solid var(--tinta);
+  box-shadow: 0 2px 6px rgba(27, 26, 23, .3);
+}
+
+@media (max-width: 860px) {
+  .lateral-ancho { width: 100%; flex: 0 0 auto; }
+  .bloque-lista { flex: 0 0 auto; }
+}
