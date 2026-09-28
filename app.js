@@ -148,8 +148,7 @@
 
     document.getElementById("compara-pie").innerHTML =
       "Con las mismas horas de cuadrilla, la recorrida de Malla cubre <b>" +
-      veces.toFixed(1).replace(".", ",") + " veces</b> el riesgo que cubre la lista por calle, y alcanza a <b>" +
-      num(plan.hogaresMalla) + " hogares</b> en lugar de " + num(plan.hogaresActual) + ". " +
+      veces.toFixed(1).replace(".", ",") + " veces</b> el riesgo que cubre la lista por calle. " +
       "Los dos criterios miran la red completa y gastan las mismas horas, y los dos pagan el " +
       "viaje entre tramo y tramo. Es el punto de <b>" +
       jornadas.toFixed(1).replace(".", ",").replace(",0", "") +
